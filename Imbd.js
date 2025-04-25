@@ -1,122 +1,116 @@
-import React, { useState } from 'react';
-
-const initialActors = [
-  { id: 1, name: 'Leonardo DiCaprio' },
-  { id: 2, name: 'Scarlett Johansson' }
-];
-
-const initialProducers = [
-  { id: 1, name: 'Christopher Nolan' }
-];
+import React, { useState, useEffect } from 'react';
 
 const IMDBClone = () => {
+  const [actors, setActors] = useState([]);
+  const [producers, setProducers] = useState([]);
   const [movies, setMovies] = useState([]);
-  const [actors, setActors] = useState(initialActors);
-  const [producers, setProducers] = useState(initialProducers);
 
-  const [movieForm, setMovieForm] = useState({
+  const [form, setForm] = useState({
     name: '',
     year: '',
+    plot: '',
+    poster: '',
     producer: '',
     newProducer: '',
     selectedActors: [],
     newActor: ''
   });
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setMovieForm((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    const localActors = JSON.parse(localStorage.getItem('actors') || '[]');
+    const localProducers = JSON.parse(localStorage.getItem('producers') || '[]');
+    const localMovies = JSON.parse(localStorage.getItem('movies') || '[]');
+    setActors(localActors);
+    setProducers(localProducers);
+    setMovies(localMovies);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('actors', JSON.stringify(actors));
+    localStorage.setItem('producers', JSON.stringify(producers));
+    localStorage.setItem('movies', JSON.stringify(movies));
+  }, [actors, producers, movies]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const toggleActorSelection = (id) => {
-    setMovieForm((prev) => {
-      const selected = prev.selectedActors.includes(id)
-        ? prev.selectedActors.filter((a) => a !== id)
-        : [...prev.selectedActors, id];
-      return { ...prev, selectedActors: selected };
-    });
+  const toggleActor = (id) => {
+    const updated = form.selectedActors.includes(id)
+      ? form.selectedActors.filter(a => a !== id)
+      : [...form.selectedActors, id];
+    setForm({ ...form, selectedActors: updated });
   };
 
-  const handleAddMovie = () => {
-    const actorList = [...actors];
-    const producerList = [...producers];
+  const handleSubmit = () => {
+    const newActors = [...actors];
+    const newProducers = [...producers];
 
-    // Add new actor if provided
-    if (movieForm.newActor) {
-      const newActor = { id: actorList.length + 1, name: movieForm.newActor };
-      actorList.push(newActor);
-      movieForm.selectedActors.push(newActor.id);
+    if (form.newActor) {
+      const newId = newActors.length + 1;
+      newActors.push({ id: newId, name: form.newActor });
+      form.selectedActors.push(newId);
     }
 
-    // Add new producer if provided
-    let producerId = parseInt(movieForm.producer);
-    if (movieForm.newProducer) {
-      const newProducer = { id: producerList.length + 1, name: movieForm.newProducer };
-      producerList.push(newProducer);
-      producerId = newProducer.id;
+    let producerId = parseInt(form.producer);
+    if (form.newProducer) {
+      producerId = newProducers.length + 1;
+      newProducers.push({ id: producerId, name: form.newProducer });
     }
 
-    const newMovie = {
-      name: movieForm.name,
-      year: movieForm.year,
-      producer: producerList.find((p) => p.id === producerId)?.name || '',
-      actors: actorList.filter((a) => movieForm.selectedActors.includes(a.id)).map((a) => a.name)
+    const movie = {
+      name: form.name,
+      year: form.year,
+      plot: form.plot,
+      poster: form.poster,
+      producer: newProducers.find(p => p.id === producerId)?.name,
+      actors: newActors.filter(a => form.selectedActors.includes(a.id)).map(a => a.name)
     };
 
-    setMovies([...movies, newMovie]);
-    setActors(actorList);
-    setProducers(producerList);
-    setMovieForm({ name: '', year: '', producer: '', newProducer: '', selectedActors: [], newActor: '' });
+    setActors(newActors);
+    setProducers(newProducers);
+    setMovies([...movies, movie]);
+    setForm({ name: '', year: '', plot: '', poster: '', producer: '', newProducer: '', selectedActors: [], newActor: '' });
   };
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-xl font-bold mb-4">IMDB Clone - Movie Manager</h2>
-
+      <h2 className="text-xl font-bold mb-4">IMDB Clone – Movie Management</h2>
       <div className="mb-6">
-        <h3 className="text-lg font-semibold">Add New Movie</h3>
-        <input name="name" value={movieForm.name} onChange={handleFormChange} placeholder="Movie Name" className="w-full border p-2 mt-2 mb-2 rounded" />
-        <input name="year" value={movieForm.year} onChange={handleFormChange} placeholder="Year of Release" className="w-full border p-2 mb-2 rounded" />
+        <input name="name" placeholder="Movie Name" className="w-full p-2 border mb-2" value={form.name} onChange={handleChange} />
+        <input name="year" placeholder="Year of Release" className="w-full p-2 border mb-2" value={form.year} onChange={handleChange} />
+        <input name="plot" placeholder="Plot" className="w-full p-2 border mb-2" value={form.plot} onChange={handleChange} />
+        <input name="poster" placeholder="Poster URL" className="w-full p-2 border mb-2" value={form.poster} onChange={handleChange} />
 
-        <select name="producer" value={movieForm.producer} onChange={handleFormChange} className="w-full border p-2 mb-2 rounded">
+        <select name="producer" className="w-full p-2 border mb-2" value={form.producer} onChange={handleChange}>
           <option value="">Select Producer</option>
-          {producers.map((prod) => (
-            <option key={prod.id} value={prod.id}>{prod.name}</option>
+          {producers.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-        <input name="newProducer" value={movieForm.newProducer} onChange={handleFormChange} placeholder="Or Add New Producer" className="w-full border p-2 mb-2 rounded" />
+        <input name="newProducer" placeholder="Or Add New Producer" className="w-full p-2 border mb-2" value={form.newProducer} onChange={handleChange} />
 
         <div className="mb-2">Select Actors:</div>
         {actors.map((actor) => (
           <label key={actor.id} className="block">
-            <input
-              type="checkbox"
-              checked={movieForm.selectedActors.includes(actor.id)}
-              onChange={() => toggleActorSelection(actor.id)}
-              className="mr-2"
-            />
-            {actor.name}
+            <input type="checkbox" checked={form.selectedActors.includes(actor.id)} onChange={() => toggleActor(actor.id)} /> {actor.name}
           </label>
         ))}
-        <input name="newActor" value={movieForm.newActor} onChange={handleFormChange} placeholder="Or Add New Actor" className="w-full border p-2 mt-2 mb-2 rounded" />
+        <input name="newActor" placeholder="Or Add New Actor" className="w-full p-2 border mt-2 mb-2" value={form.newActor} onChange={handleChange} />
 
-        <button onClick={handleAddMovie} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Movie</button>
+        <button onClick={handleSubmit} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Movie</button>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Movie Listings</h3>
-        {movies.length === 0 ? <p>No movies added yet.</p> : (
-          <ul className="space-y-4">
-            {movies.map((movie, index) => (
-              <li key={index} className="border p-4 rounded">
-                <h4 className="font-bold text-md">{movie.name} ({movie.year})</h4>
-                <p><strong>Producer:</strong> {movie.producer}</p>
-                <p><strong>Actors:</strong> {movie.actors.join(', ')}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <h3 className="text-lg font-semibold mb-2">Movie Listings</h3>
+      {movies.map((movie, idx) => (
+        <div key={idx} className="mb-4 border p-4 rounded bg-gray-50">
+          <h4 className="font-bold text-md">{movie.name} ({movie.year})</h4>
+          <p><strong>Plot:</strong> {movie.plot}</p>
+          {movie.poster && <img src={movie.poster} alt={movie.name} className="w-32 h-auto my-2" />}
+          <p><strong>Producer:</strong> {movie.producer}</p>
+          <p><strong>Actors:</strong> {movie.actors.join(', ')}</p>
+        </div>
+      ))}
     </div>
   );
 };

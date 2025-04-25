@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
 const buildings = [
-  { type: "T", name: "Theatre", buildTime: 5, revenue: 1500 },
-  { type: "P", name: "Pub", buildTime: 4, revenue: 1000 },
-  { type: "C", name: "Commercial Park", buildTime: 10, revenue: 3000 },
+  { type: 'T', name: 'Theatre', buildTime: 5, revenue: 1500 },
+  { type: 'P', name: 'Pub', buildTime: 4, revenue: 1000 },
+  { type: 'C', name: 'Commercial Park', buildTime: 10, revenue: 3000 }
 ];
 
 function getMaxProfit(timeLimit) {
@@ -20,17 +20,9 @@ function getMaxProfit(timeLimit) {
 
         if (profit > maxProfit) {
           maxProfit = profit;
-          bestCombos = [
-            { T: t, P: p, C: c, buildTime: totalBuildTime, earnings: profit },
-          ];
+          bestCombos = [{ T: t, P: p, C: c, buildTime: totalBuildTime, earnings: profit }];
         } else if (profit === maxProfit) {
-          bestCombos.push({
-            T: t,
-            P: p,
-            C: c,
-            buildTime: totalBuildTime,
-            earnings: profit,
-          });
+          bestCombos.push({ T: t, P: p, C: c, buildTime: totalBuildTime, earnings: profit });
         }
       }
     }
@@ -50,7 +42,7 @@ const MaxProfitCalculator = () => {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-xl font-bold mb-4">Max Profit Calculator</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input

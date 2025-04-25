@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Water Tank Problem</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    .block { display: inline-block; width: 20px; height: 20px; margin: 1px; }
+    .bar { background-color: #555; }
+    .water { background-color: #00f; opacity: 0.5; }
+    .stack { display: flex; flex-direction: column-reverse; margin: 0 2px; }
+    .container { display: flex; align-items: flex-end; gap: 2px; min-height: 200px; }
+  </style>
+</head>
+<body>
+  <h1>Water Tank Visualization</h1>
+  <input type="text" id="inputHeights" placeholder="Enter heights e.g. 3,0,2,0,4" />
+  <button onclick="renderBlocks()">Visualize</button>
+  <div id="visual" class="container"></div>
+  <p id="output"></p>
+
+  <script>
+    function trapWater(heights) {
+      let left = 0, right = heights.length - 1;
+      let leftMax = 0, rightMax = 0, water = 0;
+      while (left < right) {
+        if (heights[left] < heights[right]) {
+          leftMax = Math.max(leftMax, heights[left]);
+          water += leftMax - heights[left];
+          left++;
+        } else {
+          rightMax = Math.max(rightMax, heights[right]);
+          water += rightMax - heights[right];
+          right--;
+        }
+      }
+      return water;
+    }
+
+    function renderBlocks() {
+      const input = document.getElementById('inputHeights').value;
+      const heights = input.split(',').map(Number);
+      const maxH = Math.max(...heights);
+      const container = document.getElementById('visual');
+      container.innerHTML = '';
+
+      for (let i = 0; i < heights.length; i++) {
+        const stack = document.createElement('div');
+        stack.className = 'stack';
+        for (let h = 0; h < maxH; h++) {
+          const div = document.createElement('div');
+          div.classList.add('block');
+          if (h < heights[i]) {
+            div.classList.add('bar');
+          } else {
+            const leftMax = Math.max(...heights.slice(0, i + 1));
+            const rightMax = Math.max(...heights.slice(i));
+            const minHeight = Math.min(leftMax, rightMax);
+            if (h < minHeight) {
+              div.classList.add('water');
+            }
+          }
+          stack.appendChild(div);
+        }
+        container.appendChild(stack);
+      }
+
+      document.getElementById('output').textContent = `Trapped Water Units: ${trapWater(heights)}`;
+    }
+  </script>
+</body>
+</html>
